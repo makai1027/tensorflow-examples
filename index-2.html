@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片识别以及内容预测</title>
+  <style>
+    #image-box img,
+    #image-box li {
+      display: inline-block;
+      width: 240px;
+      height: auto;
+    }
+
+    .layout {
+      display: flex;
+    }
+
+    .col {
+      flex: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <div class="col">
+      <input type="file" accept="image/png, image/jpeg, image/jpg, image/gif" id="fileInput" />
+
+      <ol id="image-box"></ol>
+    </div>
+    <div class="col">
+      <video autoplay playsinline muted id="webcam" width="360" height="240"></video>
+
+      <div id="video-result"></div>
+
+      <button id="class-a">类型A</button>
+      <button id="class-b">类型B</button>
+      <button id="class-c">类型C</button>
+    </div>
+  </div>
+</body>
+<script type="module" src="./ts/index-2.ts"></script>
+
+</html>

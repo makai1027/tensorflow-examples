@@ -10,6 +10,10 @@ import * as tfvis from "@tensorflow/tfjs-vis";
 // @ts-ignore
 import { MnistData } from "./data.ts";
 
+const IMAGE_WIDTH = 28;
+const IMAGE_HEIGHT = 28;
+const IMAGE_CHANNELS = 1;
+
 async function showExamples(data) {
   // 创建tfjs-vis容器
   const surface = tfvis.visor().surface({ name: "输入示例", tab: "输入数据" });
@@ -44,10 +48,6 @@ async function showExamples(data) {
 
 function getModel() {
   const model = sequential();
-
-  const IMAGE_WIDTH = 28;
-  const IMAGE_HEIGHT = 28;
-  const IMAGE_CHANNELS = 1;
   // 添加初始层, 设置卷积
   model.add(
     layers.conv2d({
@@ -138,6 +138,58 @@ async function trainModel(model: Sequential, data) {
   });
 }
 
+const className = [
+  "Zero",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+];
+
+function doPrediction(model, data, testDataSize = 500) {
+  const testData = data.nextTestBatch(testDataSize);
+  const testXs = testData.xs.reshape([
+    testDataSize,
+    IMAGE_WIDTH,
+    IMAGE_HEIGHT,
+    IMAGE_CHANNELS,
+  ]);
+  // 返回坐标轴上最大值的索引。结果的形状与输入相同，但删除了沿坐标轴的尺寸。
+  const labels = testData.labels.argMax(-1);
+  const preds = model.predict(testXs).argMax(-1);
+
+  testXs.dispose();
+  return [preds, labels];
+}
+
+async function showAccuracy(model, data) {
+  const [preds, labels] = doPrediction(model, data);
+
+  const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds);
+
+  const container = { name: "计算准确率", tab: "评估" };
+  tfvis.show.perClassAccuracy(container, classAccuracy, className);
+
+  labels.dispose();
+}
+
+async function showConfusion(model, data) {
+  const [preds, labels] = doPrediction(model, data);
+  const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds);
+  const container = { name: "显示指标", tab: "评估" };
+  tfvis.render.confusionMatrix(container, {
+    values: confusionMatrix,
+    tickLabels: className,
+  });
+
+  labels.dispose();
+}
+
 async function run() {
   const data = new MnistData();
 
@@ -156,6 +208,9 @@ async function run() {
   );
 
   await trainModel(model, data);
+
+  await showAccuracy(model, data);
+  await showConfusion(model, data);
 }
 
 document.addEventListener("DOMContentLoaded", run);
